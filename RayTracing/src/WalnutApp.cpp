@@ -5,6 +5,7 @@
 #include "Walnut/Random.h"
 #include "Walnut/Timer.h"
 
+#include <glm/gtc/type_ptr.hpp>
 #include "Renderer.h"
 #include "Camera.h"
 
@@ -15,7 +16,21 @@ class ExampleLayer : public Walnut::Layer
 public:
 	ExampleLayer()
 		: camera_(45.0f, 0.1f, 100.0f)
-	{ }
+	{ 
+		{
+			Sphere sphere;
+			sphere.Position = { -0.5, -1.0, 0.0 };
+			sphere.Albedo = { 1.0f, 1.0f, 0.0f };
+			scene_.Spheres.push_back(sphere);
+		}
+
+		{
+			Sphere sphere;
+			sphere.Position = { 0.5, 0.0, 0.0 };
+			sphere.Albedo = { 1.0f, 0.0f, 0.0f };
+			scene_.Spheres.push_back(sphere);
+		}
+	}
 
 
 	void OnUpdate(float ts) override
@@ -31,6 +46,19 @@ public:
 		{
 			Render();
 		}
+		ImGui::End();
+
+		ImGui::Begin("Scene");
+		for (size_t i = 0; i < scene_.Spheres.size(); i++)
+		{
+			ImGui::PushID(i);
+			Sphere& sphere = scene_.Spheres[i];
+			ImGui::DragFloat3("Postion", glm::value_ptr(sphere.Position), 1.0);
+			ImGui::DragFloat("Radius", &sphere.Radius, 0.1);
+			ImGui::ColorEdit3("Albedo", glm::value_ptr(sphere.Albedo), 1.0);
+			ImGui::PopID();
+		}
+		
 		ImGui::End();
 
 
@@ -63,7 +91,7 @@ public:
 		renderer_.OnResize(viewportWidth_, viewportHeight_);
 		camera_.OnResize(viewportWidth_, viewportHeight_);  // cache ray directions
 		// renderer render
-		renderer_.Render(camera_);
+		renderer_.Render(scene_, camera_);
 		
 
 		lastRenderTime_ = timer.ElapsedMillis();
@@ -73,6 +101,7 @@ private:
 	uint32_t viewportHeight_;
 	Renderer renderer_;
 	Camera camera_;
+	Scene scene_;
 	float lastRenderTime_;
 };
 
